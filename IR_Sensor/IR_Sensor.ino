@@ -12,7 +12,7 @@
 FC_51 ir_sensor(IR_PIN);
 
 void setup() {
-  serial.begin(9600);
+  Serial.begin(9600);
   pinMode(LED_PIN, OUTPUT);
 }
 
