@@ -49,7 +49,7 @@ void loop() {
     if (DELAY > 999)
     {
       
-      motor.writeMicroseconds(DELAY);
+      motor.writeMicroseconds(1100);
       float SPEED = (DELAY-1000)/10;
       Serial.print("\n");
       Serial.println("Motor speed:"); Serial.print("  "); Serial.print(SPEED); Serial.print("%"); 
