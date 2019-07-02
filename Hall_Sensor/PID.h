@@ -29,15 +29,15 @@ public:
 	float m_derivative;                 // Derivative Term
 	float m_pwmOutput;                  // Signal Output
 	uint16_t m_sampleTime;            	// Sample timeted
-	int8_t m_Outputmin; 
-	int8_t m_Outputmax;
+	int m_Outputmin; 
+	int m_Outputmax;
 	unsigned long lastTime;
 	float Kp; float Ki; float Kd;     	//PID constants
 
 	
-	PID( float Kp, float Ki, float Kd, int sampleT=100, byte outMin=0, byte outMax=100); 
+	PID( float Kp, float Ki, float Kd, int sampleT=100, int outMin=0, int outMax=100); 
 	float PID_ProcessIteration(float Input, float Setpoint);       
-	void Set_Output_Limits(byte outMin, byte outMax); // * clamps the output to a specific range.
+	void Set_Output_Limits(int outMin, int outMax); // * clamps the output to a specific range.
 	uint16_t Get_Sample_Time();
 	void Set_Sample_Time(uint16_t sampleT);
 	void Set_PID_Constants( float Kp, float Ki, float Kd);
