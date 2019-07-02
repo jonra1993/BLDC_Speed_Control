@@ -8,21 +8,38 @@
 #define MOTOR_PIN 9
 int DELAY = 1000;
 
-volatile uint16_t count = 0;   //Main revolution counter
-volatile uint16_t rpm = 0;     //Revolution per minute
-volatile uint16_t rps = 0;     //Revolution per 
+volatile uint16_t pulses=0;    //Main revolution counter
+volatile uint16_t rpm=0;   //Revolution per minute
+volatile uint16_t rps=0;   //Revolution per second
+volatile uint16_t count2=0;    //Main revolution counter
 unsigned long previousMillis1 = 0;      
 unsigned long previousMillis2 = 0;        
 float control_action = 0;
+float setpoint = 1800.00;
+
 Servo motor;
-PID pid( 5.0f, 0.001f , 10.0f, 50, 1000, 1100);
+PID pid( 0.010f, 0.0001f , 0.0f, 50, 1000, 1200);
 
 
 
 
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
+  
+  //set timer1 interrupt at 1Hz>>
+  TCCR2A = 0;// set entire TCCR1A register to 0
+  TCCR2B = 0;// same for TCCR1B
+  TCNT2  = 0;//initialize counter value to 0
+  // set compare match register for 1hz increments
+  OCR2A = 249;// = (16*10^6) / (1*32*1000) - 1 (must be <65536)
+  // turn on CTC mode
+  TCCR2A |= (1 << WGM21);
+  // Set CS12 for a 32 bits prescaler
+  TCCR2B |= (1 << CS22)|(1 << CS20);  
+  // enable timer compare interrupt
+  TIMSK2 |= (1 << OCIE2A);
+  
   pinMode(2, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(2), interruptCount, RISING); 
   sei();//allow interrupts    
@@ -41,15 +58,7 @@ void setup() {
   Serial.print("Now writing maximum output: (");Serial.print(MAX_SIGNAL);Serial.print(" us in this case)");Serial.print("\n");
   Serial.println("Turn on power source, then wait 2 seconds and press any key.");
   motor.writeMicroseconds(MAX_SIGNAL);
-
-  // Wait for input
-  while (!Serial.available());
-  Serial.read();
-
-  // Send min output
-  Serial.println("\n");
-  Serial.println("\n");
-  Serial.print("Sending minimum output: (");Serial.print(MIN_SIGNAL);Serial.print(" us in this case)");Serial.print("\n");
+  delay(5000);
   motor.writeMicroseconds(MIN_SIGNAL);
   Serial.println("The ESC is calibrated");
   Serial.println("----");
@@ -61,30 +70,12 @@ void setup() {
 
 void loop() {
 
-  unsigned long currentMillis = millis();
 
-  control_action = pid.PID_ProcessIteration(rpm,1500.0);
+  control_action = pid.PID_ProcessIteration(rpm,setpoint);
   motor.writeMicroseconds(int(control_action));
 
-  if (currentMillis - previousMillis1 >= 1000)
-  {
-    //CPU Jumps here every 1 sec exactly!
-    previousMillis1 =  currentMillis;
-    rps=count;
-    rpm=rps*60;
-    count=0;
-
-  }
+  Serial.println(rpm);
        
-  if (currentMillis - previousMillis2 >= 100)
-  {
-    previousMillis2 =  currentMillis;
-    Serial.println(rpm);
-    Serial.println(control_action);
-
-    
-  }
-
 
  }
 
@@ -92,5 +83,20 @@ void loop() {
 
 void interruptCount()
 {
-  count++;
+  pulses++;
+}
+
+
+
+ISR(TIMER2_COMPA_vect)
+{
+  count2++;
+  if(count2==500){
+    //CPU Jumps here every 1 sec exactly!
+    rps=pulses;
+    rpm=rps*60;
+    pulses=0;
+    count2=0;
+    //Serial.println(rpm);
+  }
 }
