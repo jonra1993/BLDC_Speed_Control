@@ -1,5 +1,5 @@
+#include <Arduino.h>
 #include <Servo.h>
-#include "FC_51.h"
 #include "PID.h"
 
 // Customize here pulse lengths as needed
@@ -9,9 +9,14 @@
 #define LED_PIN 13
 #define MOTOR_PIN 9
 
-FC_51 ir_sensor(IR_PIN);
 Servo motor;
+PID pid( 0.50f, 0.001f , 0.0f, 50, 1000, 1200);
 
+float control_action = 0;
+float setpoint = 1800.00;
+
+
+unsigned long previousMillis = 0;        // will store last time LED was updated
 volatile long count2=10000;    //Main revolution counter
 volatile float period=0;
 volatile float avg_rpm =0;   
@@ -24,7 +29,7 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   delay(500);
   
-//set timer1 interrupt at 1Hz>>
+  //set timer1 interrupt at 1Hz>>
   TCCR2A = 0;// set entire TCCR1A register to 0
   TCCR2B = 0;// same for TCCR1B
   TCNT2  = 0;//initialize counter value to 0
@@ -36,8 +41,8 @@ void setup() {
   TCCR2A |= (1 << WGM21);
   // Set CS12 for a 32 bits prescaler
   TCCR2B |= (1 << CS21);
-  pinMode(2, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(IR_PIN), interruptCount, RISING); 
+  pinMode(2, INPUT);
+  attachInterrupt(digitalPinToInterrupt(IR_PIN), interruptCount, FALLING); 
   sei();//allow interrupts
 
   motor.attach(MOTOR_PIN);
@@ -50,9 +55,15 @@ void setup() {
 }
 
 void loop() {
-  digitalWrite(LED_PIN,ir_sensor.read()); //white hight and black low
-  Serial.println(avg_rpm);
-  //delay(100);
+
+  unsigned long currentMillis = millis();
+  control_action = pid.PID_ProcessIteration(avg_rpm,setpoint);
+  motor.writeMicroseconds(int(control_action));
+
+  if (currentMillis - previousMillis >= 100) {
+    previousMillis = currentMillis;
+    Serial.println(avg_rpm);
+  }
 }
 
 /***************************************************************************
