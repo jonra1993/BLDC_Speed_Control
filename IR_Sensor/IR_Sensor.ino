@@ -51,7 +51,7 @@ void setup() {
 
 void loop() {
   digitalWrite(LED_PIN,ir_sensor.read()); //white hight and black low
-  Serial.println(avg_rpm);
+  //Serial.println(avg_rpm);
   //delay(100);
 }
 
