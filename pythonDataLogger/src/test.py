@@ -21,12 +21,12 @@ from robust_serial.utils import open_serial_port
 #csv libraries
 import pandas
 
-arduinoPorts = ["COM9"]
+arduinoPorts = ["COM3"]
 
 csvHeaderTime = "Time"
 csvHeaderRPM = "Speed [rpm]"
-inputCSV = "../csv/inDatalogger.csv"
-timeDelay = 1
+inputCSV = "../csv/Data_{}.csv".format(datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+timeDelay = 0.1
 
 class Order(Enum):
 	CALIBRATION = 49
@@ -66,20 +66,20 @@ def main():
 	# Wait 3 seconds until Arduino is ready because Arduino resets after serial USB connection
 	time.sleep(3)
 	#Ensure that file exists
-	if not os.path.exists(inputCSV):
-		Measures = {csvHeaderTime: [],
-						csvHeaderRPM: []
-						}
-		df = pandas.DataFrame(Measures, columns= [csvHeaderTime, csvHeaderRPM])
-		df.to_csv(inputCSV, sep=',', index=False)
-		pass
+
+	Measures = {csvHeaderTime: [],
+					csvHeaderRPM: []
+					}
+	df = pandas.DataFrame(Measures, columns= [csvHeaderTime, csvHeaderRPM])
+	df.to_csv(inputCSV, sep=',', index=False)
 		
 	continuos=False	
 	try:
 		while True:
 			print("===============================================================")
-			print("	TEST 1")
-			print("0: Normal Operation, Continuos data reading and save at csv/inDatalogger.csv")
+			print("	SPEED TEST")
+			print("Caution: If you have already calibrated ESC and want another calibration, first desconnect ESC  from power source")
+			print("0: Normal Operation, if you calibrated before")
 			print("1: Calibration")
 			print("2: Quit")
 			print("===============================================================")
@@ -94,6 +94,8 @@ def main():
 					break
 				elif mode == 1:
 					write_order(serial_file,Order.CALIBRATION)
+					print("Now connect the ESC to power and wait some seconds")
+					time.sleep(12)
 					continuos=True
 					break
 				else:
@@ -106,7 +108,7 @@ def main():
 		pass
 
 	try:
-		print("Arduino data are been collected at csv/inDatalogger.csv")
+		print("Arduino data are been collected at "+inputCSV)
 		print("Press KeyboardInterrupt Ctl+c for quit")
 		while continuos==True:
 			write_order(serial_file, Order.DATA)
