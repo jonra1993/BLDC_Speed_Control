@@ -16,7 +16,7 @@ void setup() {
   TCCR2B = 0;// same for TCCR1B
   TCNT2  = 0;//initialize counter value to 0
   // set compare match register for 1hz increments
-  OCR2A = 249;// = (16*10^6) / (1*32*1000) - 1 (must be <65536)
+  OCR2A = 124;// = (16*10^6) / (1*64*1000) - 1 (must be <65536)
   // turn on CTC mode
   TCCR2A |= (1 << WGM21);
   // Set CS12 for a 32 bits prescaler
@@ -43,7 +43,7 @@ void interruptCount()
 ISR(TIMER2_COMPA_vect)
 {
   count2++;
-  if(count2==500){
+  if(count2>=1000){
     //CPU Jumps here every 1 sec exactly!
     rps=pulses;
     rpm=rps*60;
