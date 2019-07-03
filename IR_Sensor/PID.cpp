@@ -16,7 +16,7 @@
  ***************************************************************************/
 
 //! PID initial variables, sampleT is in ms
-PID::PID( float Kp, float Ki, float Kd, int sampleT=100, byte outMin=0, byte outMax=100){
+PID::PID( float Kp, float Ki, float Kd, int sampleT=100, int outMin=0, int outMax=100){
 	PID::Kp= Kp;
  	PID::Ki = Ki;
 	PID::Kd = Kd;
@@ -68,7 +68,7 @@ float PID::PID_ProcessIteration (float Input, float Setpoint)
 }
 
 //! Sets maximum allowable PWM duty cycle of PID.
-void PID::Set_Output_Limits(byte outMin, byte outMax) // * clamps the output to a specific range.
+void PID::Set_Output_Limits(int outMin, int outMax) // * clamps the output to a specific range.
 {
 	PID::m_Outputmin = outMin;
 	PID::m_Outputmax = outMax;
