@@ -31,22 +31,25 @@ void setup() {
 }
 
 void loop() {
-  //Serial.println((long)avg_rpm);
-  Serial.println(0);
+  Serial.println((long)avg_rpm);
   //delay(200);
 }
 
 
 void interruptCount()
 {
-  cli();
-  period=(float)count2*0.0001f;
-  avg_rpm=(120.0f/period);
-  count2=0;
-  // enable timer compare interrupt
-  TIMSK2 |= (1 << OCIE2A);
-  sei();
-
+  delayMicroseconds(25);
+	int aux=digitalRead(2);
+	if (aux==1)
+	{
+		cli();
+    period=(float)count2*0.0001f;
+    avg_rpm=(120.0f/period);
+    count2=0;
+    // enable timer compare interrupt
+    TIMSK2 |= (1 << OCIE2A);
+    sei();
+	}
 }
 
 

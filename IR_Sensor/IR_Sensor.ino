@@ -5,7 +5,7 @@
 // Customize here pulse lengths as needed
 #define MIN_PULSE_LENGTH 1000 // Minimum pulse length in µs
 #define MAX_PULSE_LENGTH 2000 // Maximum pulse length in µs
-#define IR_PIN 5
+#define IR_PIN 2
 #define LED_PIN 13
 #define MOTOR_PIN 9
 
@@ -37,7 +37,7 @@ void setup() {
   // Set CS12 for a 32 bits prescaler
   TCCR2B |= (1 << CS21);
   pinMode(2, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(2), interruptCount, RISING); 
+  attachInterrupt(digitalPinToInterrupt(IR_PIN), interruptCount, RISING); 
   sei();//allow interrupts
 
   motor.attach(MOTOR_PIN);
@@ -51,8 +51,8 @@ void setup() {
 
 void loop() {
   digitalWrite(LED_PIN,ir_sensor.read()); //white hight and black low
-  Serial.println((long)avg_rpm);
-  delay(100);
+  Serial.println(avg_rpm);
+  //delay(100);
 }
 
 /***************************************************************************
@@ -70,17 +70,20 @@ void serial_income(){
 }
  
 void interruptCount()
-{
-  cli();
-  period=(float)count2*0.0001f;
-  avg_rpm=(120.0f/period);
-  count2=0;
-  // enable timer compare interrupt
-  TIMSK2 |= (1 << OCIE2A);
-  sei();
-
+{  
+  if(count2!=0){
+    delayMicroseconds(25);
+    cli();
+    period=(float)count2*0.0001f;
+    avg_rpm=(120.0f/period);
+    count2=0;
+    // enable timer compare interrupt
+    TIMSK2 |= (1 << OCIE2A);
+    sei();
+  }
+  
+	
 }
-
 
 ISR(TIMER2_COMPA_vect)
 {
