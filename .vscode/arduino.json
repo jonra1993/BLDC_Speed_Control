@@ -1,7 +1,5 @@
 {
-    "programmer": "AVRISP mkII",
     "board": "arduino:avr:nano",
     "configuration": "cpu=atmega328old",
-    "port": "COM6",
-    "sketch": "IR_Sensor\\IR_Sensor.ino"
+    "programmer": "AVRISP mkII"
 }
