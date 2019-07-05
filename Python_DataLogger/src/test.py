@@ -14,6 +14,7 @@ import serial
 import serial.tools.list_ports
 import struct
 import numpy
+import matplotlib.pyplot as plt
 from enum import Enum
 from threading import Thread
 import math
@@ -22,11 +23,13 @@ from robust_serial import write_order, write_i8, write_i16, read_i8, read_i16
 from robust_serial.utils import open_serial_port
 #csv libraries
 import pandas
-
+# use ggplot style for more sophisticated visuals
+plt.style.use('ggplot')
 #List all available serial ports in pc
 arduinoPorts = serial.tools.list_ports.comports(include_links=False)  
 baudRate = 115200
 
+csvHeaderIndex = "Index"
 csvHeaderTime = "Time"
 csvHeaderRPM = "Speed [rpm]"
 csvHeaderSetpoint = "Setpoint [rpm]"
@@ -39,14 +42,38 @@ class Order(Enum):
 	START = 48
 	DATA = 50
 	HELLO = 1
+	STOP = 2
 
 """
 	Functions definition
 
 """
-def appeandNewRow(data):
+def live_plotter(x_vec,y1_data,line,identifier='',pause_time=0.1):
+	if line==[]:
+		# this is the call to matplotlib that allows dynamic plotting
+		plt.ion()
+		fig = plt.figure(figsize=(10,5))
+		ax = fig.add_subplot(111)
+		# create a variable for the line so we can later update it
+		line, = ax.plot(x_vec,y1_data,'-',alpha=0.8)        
+		#update plot label/title
+		plt.ylabel('Y Label')
+		plt.title('Real Time: {}'.format(identifier))
+		plt.show()
+
+	# after the figure, axis, and line are created, we only need to update the y-data
+	line.set_data(x_vec,y1_data)
+	plt.axis((0,50+len(x_vec),0,2000))
+	plt.yticks(list(range(0,2000,200)))
+	# this pauses the data so the figure/axis can catch up - the amount of pause can be altered above
+	plt.pause(pause_time)
+	# return line so we can update it again in the next iteration
+	return line
+
+def appeandNewRow(data, line):
 	csvData = pandas.read_csv(inputCSV, delimiter = ',')
-	serie =pandas.Series([data[csvHeaderTime], 
+	serie =pandas.Series([data[csvHeaderIndex],
+					data[csvHeaderTime], 
 					data[csvHeaderRPM],
 					data[csvHeaderSetpoint],
 					data[csvHeaderControl]])
@@ -54,14 +81,17 @@ def appeandNewRow(data):
 	modDfObj = csvData.append(data, ignore_index=True)
 	#csvModified = csvData.append(serie , ignore_index=True)
 	modDfObj.to_csv(inputCSV, sep=',', index=False)
+	return live_plotter(list(modDfObj[csvHeaderIndex]),list(modDfObj[csvHeaderRPM]),line, "RPM", timeDelay)
+
 
 def createCSV():
-	Measures = {csvHeaderTime: [],
+	Measures = {csvHeaderIndex:[],
+				csvHeaderTime: [],
 				csvHeaderRPM: [],
 				csvHeaderSetpoint: [],
 				csvHeaderControl: []
 				}
-	df = pandas.DataFrame(Measures, columns= [csvHeaderTime, csvHeaderRPM, csvHeaderSetpoint, csvHeaderControl])
+	df = pandas.DataFrame(Measures, columns= [csvHeaderIndex, csvHeaderTime, csvHeaderRPM, csvHeaderSetpoint, csvHeaderControl])
 	df.to_csv(inputCSV, sep=',', index=False)
 
 """
@@ -160,21 +190,26 @@ def main():
 		try:
 			print("Arduino data are been collected at "+inputCSV)
 			print("Press KeyboardInterrupt Ctl+c for quit")
+			count=0
+			line1 = []
 			while continuos==True:
 				write_order(serial_file[index_ids], Order.DATA)
 				speed = read_i16(serial_file[index_ids])
 				setpoint = read_i16(serial_file[index_ids])	
 				control = read_i16(serial_file[index_ids])		
-				data = {csvHeaderTime: datetime.datetime.now(),
+				data = {csvHeaderIndex: count,
+								csvHeaderTime: datetime.datetime.now(),
 								csvHeaderRPM: speed,
 								csvHeaderSetpoint: setpoint,
 								csvHeaderControl: control
 								}
-				appeandNewRow(data)
-				time.sleep(timeDelay)
+				line1 = appeandNewRow(data, line1)
+				count=count+1
 			pass
 		except KeyboardInterrupt:
 			pass
+		write_order(serial_file[index_ids],Order.STOP)
+		serial_file[index_ids].close()
 
 """
 	Main Program

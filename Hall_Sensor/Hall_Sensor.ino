@@ -23,7 +23,7 @@ volatile int8_t ID = 1;  // Arduino identification, it is used in python script
 //! Objects declaration
 Serial_Protocol sp;
 Servo motor;
-PID pid( 0.50f, 0.001f , 0.0f, 50, 1000, 1200); // Sets dicrete PID constants
+PID pid( 0.1f, 0.0001f , 0.0f, 100, 1000, 1200); // Sets dicrete PID constants
 //! Global variables for PID controller
 volatile float control_action = 0;
 volatile float setpoint = 1800.00;     // target speed in rpm
@@ -44,7 +44,7 @@ void setup() {
   sp.begin();         
   timer2_init();
   //  External interrupt configuratión
-  pinMode(HALL_PIN, INPUT_PULLUP);
+  pinMode(HALL_PIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(HALL_PIN), interruptCount, RISING); 
   sei();          //Enable interrupts
 
@@ -83,7 +83,7 @@ void timer2_init(){
 void interruptCount()
 {  
   if(count2!=0){
-    delayMicroseconds(25);
+    //delayMicroseconds(25);
     cli();
     period=(float)count2*0.0001f;
     avg_rpm=(120.0f/period);
@@ -113,9 +113,10 @@ void serialEvent(){
       case sp.START:
       {
         motor.attach(MOTOR_PIN);
-        motor.writeMicroseconds(1050);
+        motor.writeMicroseconds(1000);
         delay(3000);
         motor.writeMicroseconds(1000);
+        delay(3000);
         mem = true; 
         break;
       }
@@ -125,9 +126,9 @@ void serialEvent(){
         motor.writeMicroseconds(MAX_PULSE_LENGTH);
         delay(5000); 
         digitalWrite(LED_PIN, HIGH);
-        delay(2000);
+        delay(4000);
         motor.writeMicroseconds(MIN_PULSE_LENGTH);
-        delay(2000);
+        delay(4000);
         digitalWrite(LED_PIN, LOW);
         mem = true; 
         break;
@@ -137,6 +138,12 @@ void serialEvent(){
         sp.write_i16(int16_t(avg_rpm));
         sp.write_i16(int16_t(setpoint));
         sp.write_i16(int16_t(control_action));
+        break;
+      }
+      case sp.STOP:
+      {
+        motor.writeMicroseconds(MIN_PULSE_LENGTH);
+        mem=false;
         break;
       }
       // Unknown order

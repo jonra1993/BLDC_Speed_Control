@@ -25,7 +25,9 @@ class Serial_Protocol {
     CALIBRATION = 49,
     START = 48,
     DATA = 50,
-    HELLO = 1
+    HELLO = 1,
+    STOP = 2
+    
     
     };
 
