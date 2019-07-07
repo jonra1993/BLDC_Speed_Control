@@ -25,6 +25,7 @@ from robust_serial.utils import open_serial_port
 import pandas
 # use ggplot style for more sophisticated visuals
 plt.style.use('ggplot')
+ymax = 2600
 #List all available serial ports in pc
 arduinoPorts = serial.tools.list_ports.comports(include_links=False)  
 baudRate = 115200
@@ -63,8 +64,8 @@ def live_plotter(x_vec,y1_data,line,identifier='',pause_time=0.1):
 
 	# after the figure, axis, and line are created, we only need to update the y-data
 	line.set_data(x_vec,y1_data)
-	plt.axis((0,50+len(x_vec),0,2000))
-	plt.yticks(list(range(0,2000,200)))
+	plt.axis((0,50+len(x_vec),0,ymax))
+	plt.yticks(list(range(0,ymax,200)))
 	# this pauses the data so the figure/axis can catch up - the amount of pause can be altered above
 	plt.pause(pause_time)
 	# return line so we can update it again in the next iteration

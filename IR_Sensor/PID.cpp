@@ -16,7 +16,7 @@
  ***************************************************************************/
 
 //! PID initial variables, sampleT is in ms
-PID::PID( float Kp, float Ki, float Kd, int sampleT=100, int outMin=0, int outMax=100){
+PID::PID( float Kp, float Ki, float Kd, int sampleT=50, int outMin=0, int outMax=100){
 	PID::Kp= Kp;
  	PID::Ki = Ki;
 	PID::Kd = Kd;
