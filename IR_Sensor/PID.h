@@ -35,7 +35,7 @@ public:
 	float Kp; float Ki; float Kd;     	//PID constants
 
 	
-	PID( float Kp, float Ki, float Kd, int sampleT=100, int outMin=0, int outMax=100); 
+	PID( float Kp, float Ki, float Kd, int sampleT=50, int outMin=0, int outMax=100); 
 	float PID_ProcessIteration(float Input, float Setpoint);       
 	void Set_Output_Limits(int outMin, int outMax); // * clamps the output to a specific range.
 	uint16_t Get_Sample_Time();
