@@ -65,6 +65,9 @@ float PID::PID_ProcessIteration (float Input, float Setpoint)
 		
 		return PID::m_pwmOutput;
 		}
+	else{
+		return PID::m_pwmOutput;
+	}
 }
 
 //! Sets maximum allowable PWM duty cycle of PID.
